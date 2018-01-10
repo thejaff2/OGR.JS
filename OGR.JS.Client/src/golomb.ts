@@ -1,45 +1,67 @@
 export class Golomb {
 
-    generate(order: number, maxlength: number): number {
 
-        let ruler = new GolombRuler(order);
-        let shortest = ruler.length();
-        console.log(ruler.print());
+}
 
-        if (maxlength > shortest)
-            maxlength = shortest;
+export class GolombRuler {
+    markers: number[] = [];
+    distances: number[] = [];
 
-        let adjustPosition = order - 2;
+    constructor(public order: number, stub: number[] = [0]) {
+        stub.forEach(x => this.markers.push(x), this);
 
+        this.calculateDistances();
+
+        for (let i = this.markers.length - 1; i < order - 1; i++)
+            this.addMarker();
+    }
+
+    public find(maxSearchLength?: number): number[][] {
+        let shortestLength = this.length();
+        // console.log(this.print(this.markers));
+
+        if (!maxSearchLength || maxSearchLength > shortestLength)
+            maxSearchLength = shortestLength;
+
+        let halfInc = this.order % 2 == 1 ? 0 : 1;
+        let adjustPosition = this.order - 2;
         let count = 0;
+        let halfOrder = ((this.order / 2) | 0);
+        let halfMax = ((maxSearchLength / 2) | 0) + halfInc;
 
-        let halfOrder = (order / 2) | 0;
-        let halfMax = (maxlength / 2) | 0;
-        let breakFirstHalf: boolean = false;
+        let results: number[][] = [];
+        results.push(this.markers.map(x => x));
 
         do {
-            let prevDist = ruler.clearMarkers(adjustPosition);
-            ruler.addMarker(prevDist + 1);
+            let prevDist = this.clearMarkers(adjustPosition);
+            this.addMarker(prevDist + 1);
 
-            breakFirstHalf = false;
-
-            while (ruler.markers.length < order && ruler.length() < maxlength) {
-                if (adjustPosition == halfOrder && ruler.length() > halfMax) {
-                    // breakFirstHalf = true;
+            while (this.markers.length < this.order && this.length() < maxSearchLength) {
+                if (adjustPosition == halfOrder && this.length() > halfMax) {
                     adjustPosition--;
                     break;
                 }
 
-                ruler.addMarker();
+                this.addMarker();
                 adjustPosition++;
             }
 
-            if (ruler.markers.length == order && ruler.length() <= shortest) {
-                console.log(ruler.print());
-                shortest = ruler.length();
+            if (this.markers.length == this.order && this.length() <= shortestLength) {
+                // console.log(this.print(this.markers));
 
-                if (maxlength > shortest)
-                    maxlength = shortest;
+                if (this.length() < shortestLength)
+                    results = [];
+
+                results.push(this.markers.map(x => x));
+
+                shortestLength = this.length();
+
+                if (maxSearchLength > shortestLength) {
+                    maxSearchLength = shortestLength;
+                    // halfMax = (maxSearchLength / 2) | 0;     
+                    halfMax = ((maxSearchLength / 2) | 0) + halfInc;               
+                    // halfMax = Math.ceil(maxSearchLength / 2);               
+                }
             }
 
             // if (ruler.markers.length > 5 && 
@@ -52,7 +74,7 @@ export class Golomb {
             //     let xc = "sdf";
             // }
 
-            if (ruler.markers.length == adjustPosition + 1)
+            if (this.markers.length == adjustPosition + 1)
                 adjustPosition--;
 
             count++;
@@ -60,38 +82,30 @@ export class Golomb {
         while (adjustPosition > 0);
         // while (this.count < 90000000 && adjustPosition > 0);
 
-        return count;
-    }
-}
+        results.push([count]);
 
-export class GolombRuler {
-    markers: number[] = [];
-    distances: number[] = [];
-
-    constructor(public order: number) {
-        this.markers.push(0);
-
-        for (let i = 0; i < order - 1; i++)
-            this.addMarker();
-
-        this.calculateDistances();
+        return results;
     }
 
-    length(): number {
+    public print(markers: number[]): string {
+        return `markers: ${markers.map(x => x + " ")}`; // distances: ${this.distances.map(x => x + " ")}`;
+    }
+
+    private length(): number {
         return this.markers[this.markers.length - 1];
     }
 
-    addMarker(minDistance: number = 1): void {
+    private addMarker(minDistance: number = 1): void {
         let newDistance = this.smallestValidDistance(minDistance);
         this.markers.push(this.markers[this.markers.length - 1] + newDistance);
         this.calculateDistances();
     }
 
-    removeMarker(): void {
+    private removeMarker(): void {
         this.clearMarkers(this.markers.length - 2);
     }
 
-    clearMarkers(after: number = 0): number {
+    private clearMarkers(after: number = 0): number {
         this.markers.splice(after + 1);
         let curDistance = this.markers[this.markers.length - 1] - this.markers[this.markers.length - 2];
         this.markers.splice(after);
@@ -99,7 +113,7 @@ export class GolombRuler {
         return curDistance;
     }
 
-    progressMarker(curDistance: number): void {
+    private progressMarker(curDistance: number): void {
         // let curDistance = this.markers[this.markers.length - 1] - this.markers[this.markers.length - 2];
 
         // this.removeMarker();
@@ -109,19 +123,12 @@ export class GolombRuler {
         this.calculateDistances();
     }
 
-    smallestValidDistance(minDistance: number = 1): number {
+    private smallestValidDistance(minDistance: number = 1): number {
         let i = minDistance;
 
         let marker = this.markers[this.markers.length - 1] + minDistance;
 
         do {
-            // let exists = this.distances.find(x => x == i);
-
-            // if (!exists)
-            //     return i;
-
-            // i++;
-
             let newDists = this.newDistancesByMarker(marker);
 
             if (!newDists.some(x => this.distances.find(y => y === x) != null))
@@ -133,11 +140,11 @@ export class GolombRuler {
         while (true);
     }
 
-    newDistancesByMarker(marker: number): number[] {
+    private newDistancesByMarker(marker: number): number[] {
         return this.markers.map(x => marker - x);
     }
 
-    calculateDistances(): void {
+    private calculateDistances(): void {
         this.distances = [];
 
         for (var i = 0; i < this.markers.length - 1; i++)
@@ -147,7 +154,5 @@ export class GolombRuler {
         // console.log(print());
     }
 
-    print(): string {
-        return `markers: ${this.markers.map(x => x + " ")}`; // distances: ${this.distances.map(x => x + " ")}`;
-    }
+
 }
