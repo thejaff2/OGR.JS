@@ -15,8 +15,8 @@ export class App {
 
     console.log("start: " + new Date());
 
-    let golomb = new GolombRuler(6);
-    let rulers = golomb.find(17);
+    let golomb = new GolombRuler(7);
+    let rulers = golomb.find(25, 4);
     rulers.forEach(r => console.log(golomb.print(r)), this);
 
     this.message = "done";
