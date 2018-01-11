@@ -18,7 +18,7 @@ export class GolombRuler {
 
     public find(maxSearchLength?: number, stopAtOrder?: number): number[][] {
         let shortestLength = this.length();
-        console.log(this.print(this.markers));
+        // console.log(this.print(this.markers));
 
         if (!maxSearchLength || maxSearchLength > shortestLength)
             maxSearchLength = shortestLength;
@@ -42,7 +42,7 @@ export class GolombRuler {
             this.addMarker(prevDist + 1);
 
             while (this.markers.length < stopAtOrder && this.length() < maxSearchLength) {
-                if (adjustPositionCur == halfOrder && this.length() >= halfMax) {
+                if (adjustPositionCur <= halfOrder && this.length() >= halfMax) {
                     adjustPositionCur--;
                     break;
                 }
@@ -51,7 +51,8 @@ export class GolombRuler {
                 adjustPositionCur++;
             }
 
-            console.log(this.print(this.markers));
+            if (this.markers.length == stopAtOrder)
+                console.log(this.print(this.markers));
 
             if (this.markers.length == this.order && this.length() <= shortestLength) {
                 // console.log(this.print(this.markers));
