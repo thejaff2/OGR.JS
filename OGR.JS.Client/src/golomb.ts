@@ -7,7 +7,7 @@ export class GolombRuler {
     markers: number[] = [];
     distances: number[] = [];
 
-    constructor(public order: number, stub: number[] = [0]) {
+    constructor(public order: number, private stub: number[] = [0]) {
         stub.forEach(x => this.markers.push(x), this);
 
         this.calculateDistances();
@@ -16,35 +16,43 @@ export class GolombRuler {
             this.addMarker();
     }
 
-    public find(maxSearchLength?: number): number[][] {
+    public find(maxSearchLength?: number, stopAtOrder?: number): number[][] {
         let shortestLength = this.length();
         // console.log(this.print(this.markers));
 
         if (!maxSearchLength || maxSearchLength > shortestLength)
             maxSearchLength = shortestLength;
 
-        let halfInc = this.order % 2 == 1 ? 0 : 1;
-        let adjustPosition = this.order - 2;
-        let count = 0;
-        let halfOrder = ((this.order / 2) | 0);
-        let halfMax = ((maxSearchLength / 2) | 0) + halfInc;
+        if (!stopAtOrder)
+            stopAtOrder = this.order;
+
+        let adjustPositionCur = this.order - 2;
+        let adjustPositionMin = this.stub.length - 1;
+
+        let halfOrder = Math.ceil(this.order / 2) - 1;
+        let halfMax = Math.ceil(maxSearchLength / 2);
 
         let results: number[][] = [];
         results.push(this.markers.map(x => x));
 
+        let cycles = 0;
+
         do {
-            let prevDist = this.clearMarkers(adjustPosition);
+            let prevDist = this.clearMarkers(adjustPositionCur);
             this.addMarker(prevDist + 1);
 
-            while (this.markers.length < this.order && this.length() < maxSearchLength) {
-                if (adjustPosition == halfOrder && this.length() > halfMax) {
-                    adjustPosition--;
+            while (this.markers.length < stopAtOrder && this.length() < maxSearchLength) {
+                if (adjustPositionCur <= halfOrder && this.length() >= halfMax) {
+                    adjustPositionCur--;
                     break;
                 }
 
                 this.addMarker();
-                adjustPosition++;
+                adjustPositionCur++;
             }
+
+            if (this.markers.length == stopAtOrder)
+                console.log(this.print(this.markers));
 
             if (this.markers.length == this.order && this.length() <= shortestLength) {
                 // console.log(this.print(this.markers));
@@ -58,9 +66,7 @@ export class GolombRuler {
 
                 if (maxSearchLength > shortestLength) {
                     maxSearchLength = shortestLength;
-                    // halfMax = (maxSearchLength / 2) | 0;     
-                    halfMax = ((maxSearchLength / 2) | 0) + halfInc;               
-                    // halfMax = Math.ceil(maxSearchLength / 2);               
+                    halfMax = Math.ceil(maxSearchLength / 2);
                 }
             }
 
@@ -74,21 +80,21 @@ export class GolombRuler {
             //     let xc = "sdf";
             // }
 
-            if (this.markers.length == adjustPosition + 1)
-                adjustPosition--;
+            if (this.markers.length == adjustPositionCur + 1)
+                adjustPositionCur--;
 
-            count++;
+            cycles++;
         }
-        while (adjustPosition > 0);
+        while (adjustPositionCur > adjustPositionMin);
         // while (this.count < 90000000 && adjustPosition > 0);
 
-        results.push([count]);
+        results.push([cycles]);
 
         return results;
     }
 
     public print(markers: number[]): string {
-        return `markers: ${markers.map(x => x + " ")}`; // distances: ${this.distances.map(x => x + " ")}`;
+        return `markers: ${markers.map(x => x + "")}`; // distances: ${this.distances.map(x => x + " ")}`;
     }
 
     private length(): number {
