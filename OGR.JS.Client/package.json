@@ -11,6 +11,9 @@
     "aurelia-animator-css": "^1.0.2",
     "aurelia-bootstrapper": "^2.1.1",
     "bluebird": "^3.4.1",
+    "bootstrap": "^4.0.0-beta.3",
+    "jquery": "^3.2.1",
+    "popper.js": "^1.12.9",
     "requirejs": "^2.3.2",
     "text": "github:requirejs/text#latest",
     "typed-web-workers": "^2.1.1"
