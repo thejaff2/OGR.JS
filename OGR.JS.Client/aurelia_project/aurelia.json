@@ -91,6 +91,11 @@
             "resources": [
               "css/bootstrap.css"
             ]
+          },
+          {
+            "name": "fingerprintjs2",
+            "path": "../node_modules/fingerprintjs2/dist",
+            "main": "fingerprint2.min.js"
           }
         ]
       }
